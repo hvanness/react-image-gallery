@@ -68,6 +68,7 @@ gulp.task('demo-src', function() {
 });
 
 gulp.task('source-js', function () {
+  console.log('building')
   return gulp.src('./src/ImageGallery.jsx')
     .pipe(concat('image-gallery.js'))
     .pipe(babel({

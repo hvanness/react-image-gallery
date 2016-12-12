@@ -54,7 +54,8 @@ export default class ImageGallery extends React.Component {
       galleryWidth: 0,
       thumbnailWidth: 0,
       isFullscreen: false,
-      isPlaying: false
+      isPlaying: false,
+      video: null,
     };
   }
 
@@ -80,6 +81,7 @@ export default class ImageGallery extends React.Component {
     }
 
     if (prevState.currentIndex !== this.state.currentIndex) {
+      this.onSlide()
       if (this.props.onSlide) {
         this.props.onSlide(this.state.currentIndex);
       }
@@ -95,6 +97,7 @@ export default class ImageGallery extends React.Component {
     this._handleScreenChange = this._handleScreenChange.bind(this);
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._thumbnailDelay = 300;
+    this.play()
   }
 
   componentDidMount() {
@@ -579,6 +582,69 @@ export default class ImageGallery extends React.Component {
     this.slideToIndex(this.state.currentIndex + 1, event);
   }
 
+  onSlide(index) {
+    this.setState({
+      video: null
+    })
+  }
+
+  closeVideo() {
+    this.setState({
+      video: null,
+    })
+  }
+
+  showVideo(url) {
+    this.pause()
+    this.setState({
+      video: url
+    })
+  }
+
+  _isVideo(item) {
+    return !!item.embedUrl
+  }
+
+  _renderVideo(item) {
+    return (
+      <div className='image-gallery-image'>
+        {
+          this.state.video == item.embedUrl ?
+            <div className='video-wrapper'>
+                <a
+                  className='close-video'
+                  onClick={this.closeVideo.bind(this)}
+                />
+                <iframe
+                  width='560'
+                  height='315'
+                  src={item.embedUrl}
+                  frameBorder='0'
+                  allowFullScreen
+                />
+            </div>
+          :
+            <a onClick={this.showVideo.bind(this, item.embedUrl)}>
+              <div className='play-button'></div>
+              <div
+                className={'img'}
+                style={{backgroundImage: 'url('+item.original+')'}}
+              />
+              {
+                item.description &&
+                  <span
+                    className='image-gallery-description'
+                    style={{right: '0', left: 'initial'}}
+                  >
+                    {item.description}
+                  </span>
+              }
+            </a>
+        }
+      </div>
+    );
+  }
+
   _renderItem(item) {
     const onImageError = this.props.onImageError || this._handleImageError;
 
@@ -626,7 +692,8 @@ export default class ImageGallery extends React.Component {
       const thumbnailClass = item.thumbnailClass ?
         ` ${item.thumbnailClass}` : '';
 
-      const renderItem = item.renderItem ||
+      const renderItem = this._isVideo(item) ? this._renderVideo.bind(this)
+        : item.renderItem ||
         this.props.renderItem || this._renderItem.bind(this);
 
       const slide = (
@@ -841,19 +908,19 @@ ImageGallery.propTypes = {
 ImageGallery.defaultProps = {
   items: [],
   showNav: true,
-  autoPlay: false,
+  autoPlay: true,
   lazyLoad: false,
   infinite: true,
   showIndex: false,
-  showBullets: false,
-  showThumbnails: true,
-  showPlayButton: true,
-  showFullscreenButton: true,
+  showBullets: true,
+  showThumbnails: false,
+  showPlayButton: false,
+  showFullscreenButton: false,
   slideOnThumbnailHover: false,
   disableThumbnailScroll: false,
   disableArrowKeys: false,
   disableSwipe: false,
   indexSeparator: ' / ',
   startIndex: 0,
-  slideInterval: 3000
+  slideInterval: 4000
 };
